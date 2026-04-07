@@ -108,6 +108,16 @@
   .closing-card h3 { font-family: var(--serif); font-size: 1.4rem; font-style: italic; margin-bottom: 0.75rem; line-height: 1.3; }
   .closing-card p { font-size: 0.88rem; color: rgba(255,255,255,0.6); line-height: 1.65; font-weight: 300; }
 
+  .college-banner { max-width: 760px; margin: 1.5rem auto 0; padding: 0 2rem; }
+  .college-card { background: var(--tag-bg); border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+  .college-left { display: flex; flex-direction: column; gap: 0.15rem; }
+  .college-name { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; }
+  .college-guide { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); }
+  .college-guide span { color: var(--text); font-weight: 500; }
+  .college-team { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+  .college-team-label { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+  .member-chip { font-family: var(--sans); font-size: 0.75rem; font-weight: 500; padding: 0.2rem 0.6rem; background: white; border: 1px solid #bfdbfe; border-radius: 20px; color: #1d4ed8; white-space: nowrap; }
+
   footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; }
   footer p { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; }
 
@@ -156,6 +166,22 @@
 <div id="articlePage">
   <div class="article-nav">
     <button class="back-btn" onclick="showIndex()">Back to all posts</button>
+  </div>
+
+  <div class="college-banner">
+    <div class="college-card">
+      <div class="college-left">
+        <div class="college-name">🏛️ Vidyalankar Institute of Technology</div>
+        <div class="college-guide">Guided by: <span>Dr. Amit Nerurkar</span></div>
+      </div>
+      <div class="college-team">
+        <span class="college-team-label">Team —</span>
+        <span class="member-chip">Jay Narkhede</span>
+        <span class="member-chip">Chirag Pednekar</span>
+        <span class="member-chip">Diikshant Redekar</span>
+        <span class="member-chip">Ruchi Surve</span>
+      </div>
+    </div>
   </div>
 
   <div class="article-hero">
