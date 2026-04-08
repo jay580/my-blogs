@@ -1,413 +1,669 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Jay's Tech Blog</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #fafaf8; --surface: #ffffff; --border: #e8e6e0;
-    --text: #1c1c1a; --muted: #8a8880; --accent: #2563eb;
-    --tag-bg: #eff6ff; --tag-color: #1d4ed8;
-    --mono: 'JetBrains Mono', monospace;
-    --serif: 'Lora', Georgia, serif;
-    --sans: 'DM Sans', sans-serif;
-  }
-  html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; }
-
-  /* NAV */
-  nav { position: sticky; top: 0; background: rgba(250,250,248,0.93); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 100; padding: 0 2rem; }
-  .nav-inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
-  .nav-logo { font-family: var(--mono); font-size: 0.85rem; font-weight: 500; color: var(--text); text-decoration: none; letter-spacing: -0.02em; cursor: pointer; background: none; border: none; }
-  .nav-logo span { color: var(--accent); }
-  .nav-links { display: flex; gap: 1.5rem; }
-  .nav-links button { font-family: var(--sans); font-size: 0.875rem; color: var(--muted); background: none; border: none; cursor: pointer; transition: color 0.2s; }
-  .nav-links button:hover { color: var(--text); }
-
-  #progress { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: var(--accent); z-index: 200; transition: width 0.1s linear; }
-
-  /* INDEX */
-  header { max-width: 760px; margin: 0 auto; padding: 4rem 2rem 2.5rem; border-bottom: 1px solid var(--border); }
-  .header-label { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
-  header h1 { font-family: var(--serif); font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 600; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
-  header p { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 480px; line-height: 1.65; }
-  main { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 6rem; }
-  .filter-bar { display: flex; gap: 0.4rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
-  .filter-btn { font-family: var(--mono); font-size: 0.75rem; font-weight: 500; padding: 0.35rem 0.85rem; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em; }
-  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-  .post-list { display: flex; flex-direction: column; }
-  .post-item { display: grid; grid-template-columns: 80px 1fr; gap: 0 1.5rem; padding: 1.6rem 0; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; transition: opacity 0.18s; align-items: start; opacity: 0; transform: translateY(12px); animation: fadeUp 0.4s forwards; cursor: pointer; }
-  .post-item:nth-child(1){animation-delay:0.05s}.post-item:nth-child(2){animation-delay:0.1s}.post-item:nth-child(3){animation-delay:0.15s}.post-item:nth-child(4){animation-delay:0.2s}.post-item:nth-child(5){animation-delay:0.25s}.post-item:nth-child(6){animation-delay:0.3s}
-  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
-  .post-item:hover { opacity: 0.7; }
-  .post-item:first-child { border-top: 1px solid var(--border); }
-  .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); line-height: 1.6; padding-top: 0.2rem; white-space: nowrap; }
-  .post-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
-  .post-excerpt { font-size: 0.875rem; color: var(--muted); line-height: 1.6; font-weight: 300; margin-bottom: 0.65rem; }
-  .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-  .tag { font-family: var(--mono); font-size: 0.68rem; font-weight: 500; padding: 0.15rem 0.5rem; background: var(--tag-bg); color: var(--tag-color); border-radius: 3px; letter-spacing: 0.02em; }
-  .no-results { text-align: center; padding: 4rem 0; color: var(--muted); font-size: 0.9rem; display: none; }
-
-  /* ARTICLE */
-  #articlePage { display: none; animation: fadeUp 0.4s forwards; }
-  .article-nav { max-width: 760px; margin: 0 auto; padding: 1.5rem 2rem 0; }
-  .back-btn { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; padding: 0; }
-  .back-btn:hover { color: var(--accent); }
-  .article-hero { max-width: 760px; margin: 0 auto; padding: 2rem 2rem 2.5rem; border-bottom: 1px solid var(--border); }
-  .article-eyebrow { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
-  .article-hero h1 { font-family: var(--serif); font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 600; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 1rem; }
-  .article-hero .subtitle { font-size: 1.05rem; color: var(--muted); font-style: italic; line-height: 1.65; margin-bottom: 1.5rem; font-weight: 300; }
-  .article-meta { display: flex; gap: 1rem; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); padding-top: 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
-  .hero-image { max-width: 760px; margin: 0 auto; padding: 2rem 2rem 0; }
-  .hero-image img { width: 100%; height: 320px; object-fit: cover; border-radius: 6px; display: block; filter: grayscale(10%); }
-  .article-body { max-width: 660px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
-  .article-body p { font-family: var(--serif); font-size: 1.05rem; line-height: 1.85; color: var(--text); margin-bottom: 1.6em; }
-  .article-body p strong { font-weight: 600; }
-  .article-body code { font-family: var(--mono); font-size: 0.83em; background: #f0f0ee; padding: 0.1em 0.4em; border-radius: 3px; color: #c0392b; }
-  .section-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin: 3.5rem 0 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .article-body h2 { font-family: var(--serif); font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 600; line-height: 1.25; margin-bottom: 1.2rem; letter-spacing: -0.02em; }
-  .article-body h2 em { font-style: italic; color: var(--accent); }
-  .inline-img { margin: 2rem 0; }
-  .inline-img img { width: 100%; height: 240px; object-fit: cover; border-radius: 5px; display: block; filter: grayscale(10%); }
-  .inline-img figcaption { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 0.6rem; text-align: center; letter-spacing: 0.03em; }
-  .pullquote { border-left: 3px solid var(--accent); padding: 0.75rem 1.25rem; margin: 2rem 0; }
-  .pullquote p { font-family: var(--serif); font-size: 1.1rem; font-style: italic; color: var(--muted); margin: 0; line-height: 1.65; }
-  .highlight-box { background: var(--tag-bg); border: 1px solid #bfdbfe; border-radius: 6px; padding: 1.25rem 1.5rem; margin: 2rem 0; }
-  .highlight-box .lbl { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
-  .highlight-box p { font-size: 0.9rem; color: #1e40af; margin: 0; line-height: 1.7; font-family: var(--sans); }
-  .reasons { display: flex; flex-direction: column; margin: 1.5rem 0; }
-  .reason-item { display: grid; grid-template-columns: 36px 1fr; gap: 0 1rem; padding: 1.2rem 0; border-bottom: 1px solid var(--border); align-items: start; }
-  .reason-item:first-child { border-top: 1px solid var(--border); }
-  .reason-num { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); padding-top: 0.15rem; }
-  .reason-title { font-family: var(--sans); font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
-  .reason-desc { font-family: var(--sans); font-size: 0.875rem; color: var(--muted); line-height: 1.65; margin: 0; }
-  .fix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1.5rem 0; }
-  .fix-card { border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.15rem; background: var(--surface); }
-  .fix-icon { font-size: 1.1rem; display: block; margin-bottom: 0.4rem; }
-  .fix-title { font-size: 0.88rem; font-weight: 500; color: var(--text); margin-bottom: 0.3rem; }
-  .fix-body { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin: 0; }
-  .tcp-chart { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin: 2rem 0; }
-  .chart-lbl { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-bottom: 1rem; letter-spacing: 0.08em; }
-  .tcp-bars { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
-  .tcp-bar { flex: 1; border-radius: 2px 2px 0 0; opacity: 0; animation: barUp 0.3s forwards; }
-  .tcp-bar.ss { background: #93c5fd; }
-  .tcp-bar.ca { background: #2563eb; }
-  .tcp-bar.loss { background: #fca5a5; }
-  @keyframes barUp { to { opacity: 1; } }
-  .tcp-legend { display: flex; gap: 1.25rem; margin-top: 0.75rem; }
-  .leg { display: flex; align-items: center; gap: 0.35rem; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
-  .leg-dot { width: 8px; height: 8px; border-radius: 2px; }
-  .closing-wrap { max-width: 660px; margin: 0 auto; padding: 0 2rem 5rem; }
-  .closing-card { background: var(--text); color: white; border-radius: 8px; padding: 2rem 2.5rem; text-align: center; }
-  .closing-card h3 { font-family: var(--serif); font-size: 1.4rem; font-style: italic; margin-bottom: 0.75rem; line-height: 1.3; }
-  .closing-card p { font-size: 0.88rem; color: rgba(255,255,255,0.6); line-height: 1.65; font-weight: 300; }
-
-  .college-banner { max-width: 760px; margin: 1.5rem auto 0; padding: 0 2rem; }
-  .college-card { background: var(--tag-bg); border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
-  .college-left { display: flex; flex-direction: column; gap: 0.15rem; }
-  .college-name { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; }
-  .college-guide { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); }
-  .college-guide span { color: var(--text); font-weight: 500; }
-  .college-team { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
-  .college-team-label { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-  .member-chip { font-family: var(--sans); font-size: 0.75rem; font-weight: 500; padding: 0.2rem 0.6rem; background: white; border: 1px solid #bfdbfe; border-radius: 20px; color: #1d4ed8; white-space: nowrap; }
-
-  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; }
-  footer p { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; }
-
-  @media (max-width: 540px) {
-    .post-item { grid-template-columns: 1fr; gap: 0.3rem; }
-    header, main, .article-hero, .article-body, .article-nav, .hero-image, .closing-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
-    .fix-grid { grid-template-columns: 1fr; }
-    nav { padding: 0 1.25rem; }
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.guide { padding: 1rem 0; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.nav-btn {
+  padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md); background: var(--color-background-primary);
+  color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.nav-btn.active { background: #3C3489; color: #CECBF6; border-color: #3C3489; }
+.exp-panel { display: none; }
+.exp-panel.active { display: block; }
+.exp-header { margin-bottom: 1.5rem; }
+.exp-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.exp-aim { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+.section-tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.tab-btn {
+  padding: 5px 12px; font-size: 13px; border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md); background: transparent;
+  color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.tab-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-primary); }
+.tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.theory-block { font-size: 14px; line-height: 1.8; color: var(--color-text-primary); }
+.theory-block p { margin-bottom: 1rem; }
+.theory-block h4 { font-size: 14px; font-weight: 500; margin: 1rem 0 0.4rem; color: var(--color-text-primary); }
+.info-card {
+  background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem;
+}
+.step-list { list-style: none; counter-reset: step-counter; }
+.step-list li {
+  counter-increment: step-counter; display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; line-height: 1.6;
+}
+.step-list li:last-child { border-bottom: none; }
+.step-num {
+  min-width: 24px; height: 24px; border-radius: 50%; background: #EEEDFE; color: #3C3489;
+  font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.code-block {
+  background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md); padding: 1rem; font-family: var(--font-mono);
+  font-size: 12px; line-height: 1.7; overflow-x: auto; white-space: pre; color: var(--color-text-primary);
+  margin-bottom: 1rem;
+}
+.viva-list { list-style: none; }
+.viva-q {
+  padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary);
+  font-size: 14px; color: var(--color-text-primary); line-height: 1.6; display: flex; gap: 10px; align-items: flex-start;
+}
+.viva-q:last-child { border-bottom: none; }
+.viva-icon { color: #534AB7; font-size: 14px; font-weight: 500; min-width: 16px; }
+.viva-ans {
+  display: none; font-size: 13px; color: var(--color-text-secondary);
+  background: var(--color-background-secondary); border-radius: var(--border-radius-md);
+  padding: 8px 12px; margin-top: 6px; line-height: 1.7; border-left: 2px solid #AFA9EC;
+}
+.viva-q-wrap { flex: 1; }
+.viva-q-text { cursor: pointer; }
+.viva-q-text:hover { color: #534AB7; }
+.badge {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md);
+  font-weight: 500; margin-left: 6px; vertical-align: middle;
+}
+.badge-exp { background: #EEEDFE; color: #3C3489; }
+.summary-box {
+  border-left: 3px solid #7F77DD; padding: 10px 14px; margin-bottom: 1rem;
+  background: var(--color-background-secondary); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+  font-size: 14px; line-height: 1.7; color: var(--color-text-primary);
+}
+.kv-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.kv-label { color: var(--color-text-secondary); min-width: 80px; }
+.kv-val { color: var(--color-text-primary); font-weight: 500; }
 </style>
-</head>
-<body>
-<div id="progress"></div>
 
-<nav>
-  <div class="nav-inner">
-    <button class="nav-logo" onclick="showIndex()"><span>//</span> Jay's Blog</button>
-    <div class="nav-links">
-      <button onclick="showIndex()">Posts</button>
-      <button>About</button>
-    </div>
-  </div>
-</nav>
-
-<!-- INDEX -->
-<div id="indexPage">
-  <header>
-    <div class="header-label">Tech &amp; Programming</div>
-    <h1>Thinking out loud<br>about code.</h1>
-    <p>Notes on DSA, systems, and things I learn the hard way.</p>
-  </header>
-  <main>
-    <div class="filter-bar" id="filterBar">
-      <button class="filter-btn active" data-tag="all">All</button>
-      <button class="filter-btn" data-tag="dsa">DSA</button>
-      <button class="filter-btn" data-tag="cpp">C++</button>
-      <button class="filter-btn" data-tag="systems">Systems</button>
-      <button class="filter-btn" data-tag="web">Web</button>
-    </div>
-    <div class="post-list" id="postList"></div>
-    <div class="no-results" id="noResults">No posts in this category yet.</div>
-  </main>
+<div class="guide">
+  <div class="nav" id="expNav"></div>
+  <div id="expContent"></div>
 </div>
-
-<!-- ARTICLE -->
-<div id="articlePage">
-  <div class="article-nav">
-    <button class="back-btn" onclick="showIndex()">Back to all posts</button>
-  </div>
-
-  <div class="college-banner">
-    <div class="college-card">
-      <div class="college-left">
-        <div class="college-name">🏛️ Vidyalankar Institute of Technology</div>
-        <div class="college-guide">Guided by: <span>Dr. Amit Nerurkar</span></div>
-      </div>
-      <div class="college-team">
-        <span class="college-team-label">Team —</span>
-        <span class="member-chip">Jay Narkhede</span>
-        <span class="member-chip">Chirag Pednekar</span>
-        <span class="member-chip">Diikshant Redekar</span>
-        <span class="member-chip">Ruchi Surve</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="article-hero">
-    <div class="article-eyebrow">Systems &nbsp;·&nbsp; Mar 15, 2026 &nbsp;·&nbsp; 12 min read</div>
-    <h1>Why Your Internet Slows Down</h1>
-    <p class="subtitle">Congestion, packet loss, TCP's sawtooth — a plain-language breakdown of why your connection betrays you at the worst moments.</p>
-    <div class="article-meta">
-      <span>Jay</span><span>·</span><span>Networks &amp; Systems</span><span>·</span><span>TCP · ISP · Wi-Fi · Congestion</span>
-    </div>
-  </div>
-
-  <div class="hero-image">
-    <img
-      src="https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1200"
-      alt="Network cables in a data center"
-      onerror="this.style.display='none'"
-    />
-  </div>
-
-  <div class="article-body">
-
-    <p>You're in the middle of something important — a video call, a file download, a livestream — and the connection dies. The wheel spins. You restart the router. Sometimes it helps. Usually it doesn't. <strong>This is not random.</strong> It is the deterministic result of physics, protocol design, and shared infrastructure colliding at once.</p>
-
-    <div class="section-label">01 — The Basics</div>
-    <h2>How Data Actually <em>Travels</em></h2>
-
-    <p>Every file you download, every message you send, every video frame you watch arrives as <strong>packets</strong> — small chunks of data, typically 1,500 bytes each, fired across a network. Your browser doesn't request one giant blob. It opens a <strong>TCP connection</strong> and requests thousands of packets in parallel.</p>
-
-    <p>TCP — Transmission Control Protocol — is the invisible engine beneath almost all internet traffic. It guarantees delivery: if a packet is lost, TCP detects it and retransmits. But this reliability comes at a cost. To avoid overwhelming the network, TCP must constantly ask: <em>how fast can I safely send?</em></p>
-
-    <div class="pullquote">
-      <p>"The internet wasn't built to be fast. It was built to be resilient. Speed is an emergent property — and congestion is the price we pay for it."</p>
-    </div>
-
-    <div class="section-label">02 — Slow Start</div>
-    <h2>TCP Starts <em>Cautiously</em></h2>
-
-    <p>When a TCP connection opens, it doesn't immediately fire packets at full speed. It starts with a <strong>congestion window (cwnd)</strong> of 1 — sends one packet and waits for an ACK. On success, it doubles: 1 → 2 → 4 → 8 → 16. This is <strong>Slow Start</strong>.</p>
-
-    <p>Slow Start isn't slow because it's cautious about speed — it's slow because it begins from zero. Doubling every round-trip time (RTT), a connection on a 50ms link reaches 64 packets in just 300ms. Once cwnd hits a threshold (<strong>ssthresh</strong>), TCP switches to <strong>Congestion Avoidance</strong>: it now grows by just 1 per RTT. Linear growth, not exponential.</p>
-
-    <figure class="inline-img">
-      <img
-        src="https://images.pexels.com/photos/1148820/pexels-photo-1148820.jpeg?auto=compress&cs=tinysrgb&w=900"
-        alt="Fiber optic light data transmission"
-        onerror="this.style.display='none'"
-      />
-      <figcaption>Light travels through fibre at ~200,000 km/s — distance is a hard physics constraint on latency</figcaption>
-    </figure>
-
-    <div class="section-label">03 — The Sawtooth</div>
-    <h2>What Congestion <em>Looks Like</em></h2>
-
-    <p>TCP detects congestion when packets are <strong>lost</strong>. The receiver stops sending ACKs. After a timeout, TCP assumes the network is overloaded and cuts cwnd drastically — sometimes back to 1, sometimes to half. Then Slow Start begins again.</p>
-
-    <p>Plot cwnd over time and you get a <strong>sawtooth wave</strong>: climb, climb, cliff, climb again. This is TCP's AIMD algorithm — <em>Additive Increase, Multiplicative Decrease</em>. Grow slowly, shrink fast. Conservative by design.</p>
-
-    <div class="tcp-chart">
-      <div class="chart-lbl">TCP CONGESTION WINDOW (cwnd) — SIMULATED SAWTOOTH</div>
-      <div class="tcp-bars" id="bars"></div>
-      <div class="tcp-legend">
-        <div class="leg"><div class="leg-dot" style="background:#93c5fd"></div>Slow Start</div>
-        <div class="leg"><div class="leg-dot" style="background:#2563eb"></div>Congestion Avoidance</div>
-        <div class="leg"><div class="leg-dot" style="background:#fca5a5"></div>Loss Event</div>
-      </div>
-    </div>
-
-    <p>This is why your connection stutters rhythmically during congestion — TCP is repeatedly climbing and falling, probing for the network's true capacity.</p>
-
-    <figure class="inline-img">
-      <img
-        src="https://images.pexels.com/photos/1054397/pexels-photo-1054397.jpeg?auto=compress&cs=tinysrgb&w=900"
-        alt="Wi-Fi router"
-        onerror="this.style.display='none'"
-      />
-      <figcaption>Wi-Fi operates on shared spectrum — every nearby device competes for the same channel</figcaption>
-    </figure>
-
-    <div class="section-label">04 — Seven Culprits</div>
-    <h2>The Real Reasons Your Internet <em>Slows Down</em></h2>
-
-    <div class="reasons">
-      <div class="reason-item"><div class="reason-num">01</div><div><div class="reason-title">Network Congestion at the ISP</div><p class="reason-desc">Your ISP's backhaul links have finite capacity. When millions stream simultaneously — peak hours, 8–11 PM — those links saturate and every TCP connection starts dropping packets.</p></div></div>
-      <div class="reason-item"><div class="reason-num">02</div><div><div class="reason-title">Router Bufferbloat</div><p class="reason-desc">Modern routers have large memory buffers. When congested, packets pile up instead of being dropped — causing massive latency spikes before TCP even detects a problem.</p></div></div>
-      <div class="reason-item"><div class="reason-num">03</div><div><div class="reason-title">Wi-Fi Interference</div><p class="reason-desc">Wi-Fi is a shared medium. Every device on your 2.4GHz band — your neighbour's router, a microwave — causes collisions and retransmissions that TCP reads as congestion.</p></div></div>
-      <div class="reason-item"><div class="reason-num">04</div><div><div class="reason-title">Long Physical Distance</div><p class="reason-desc">Light travels through fibre at ~200,000 km/s. Mumbai to New York takes ~150ms minimum. TCP's cwnd cannot grow fast enough on high-latency links — physics wins.</p></div></div>
-      <div class="reason-item"><div class="reason-num">05</div><div><div class="reason-title">Server Overload</div><p class="reason-desc">When millions hit a server simultaneously — a product launch, viral post — CPU, memory, and network saturate. Response times climb from 10ms to 10 seconds.</p></div></div>
-      <div class="reason-item"><div class="reason-num">06</div><div><div class="reason-title">Too Many Open Connections</div><p class="reason-desc">40 browser tabs plus system updates means hundreds of competing cwnd windows trying to grow simultaneously — they starve each other out.</p></div></div>
-      <div class="reason-item"><div class="reason-num">07</div><div><div class="reason-title">Deep Packet Inspection / Throttling</div><p class="reason-desc">ISPs can legally throttle specific traffic types — video streaming, torrents. They inspect packet headers, identify the category, and artificially inject delay. Intentional, not accidental.</p></div></div>
-    </div>
-
-    <div class="section-label">05 — OS Perspective</div>
-    <h2>What Your Operating System <em>Sees</em></h2>
-
-    <p>From the OS perspective, congestion control is a scheduling and resource allocation problem. The kernel must fairly allocate the network interface — a shared hardware resource — among hundreds of competing processes, each with its own TCP connection and cwnd.</p>
-
-    <p>The OS uses <strong>traffic shaping</strong> (queueing disciplines — QDisc in Linux) and <strong>socket buffers</strong> (<code>SO_SNDBUF</code>, <code>SO_RCVBUF</code>) to manage this. When the outgoing queue fills up, the OS drops packets from its own buffer — <em>before they even leave your machine</em>.</p>
-
-    <div class="highlight-box">
-      <div class="lbl">💡 OS Concept — Resource Allocation</div>
-      <p>TCP congestion control is distributed resource allocation without a central scheduler. Every sender independently self-limits based on local observations — exactly like processes in a preemptive OS sharing CPU time, except there is no kernel to enforce fairness. TCP's AIMD algorithm converges to fairness mathematically.</p>
-    </div>
-
-    <div class="section-label">06 — TCP Evolution</div>
-    <h2>How TCP Got <em>Smarter</em> Over Time</h2>
-
-    <p>The original TCP (Tahoe, 1988) crashed cwnd back to 1 on every loss event — brutal but safe. TCP Reno (1990) introduced <strong>Fast Recovery</strong>: drop cwnd to ssthresh and skip back into Congestion Avoidance instead of restarting. Fewer wasted RTTs recovering from loss.</p>
-
-    <p>Modern variants go further. <strong>CUBIC</strong> (Linux since 2006) uses a cubic function to grow cwnd more aggressively on high-bandwidth links. <strong>BBR</strong> (Google, 2016) abandons loss-based inference entirely — it directly models bandwidth and RTT to find the optimal sending rate, dramatically better on high-latency links like satellite internet.</p>
-
-    <div class="section-label">07 — What You Can Do</div>
-    <h2>Actually <em>Fixing</em> It</h2>
-
-    <div class="fix-grid">
-      <div class="fix-card"><span class="fix-icon">📶</span><div class="fix-title">Switch to 5GHz Wi-Fi</div><p class="fix-body">Less interference, higher speed. Eliminates most packet loss from Wi-Fi collisions in dense environments.</p></div>
-      <div class="fix-card"><span class="fix-icon">🔌</span><div class="fix-title">Use Ethernet</div><p class="fix-body">Wired connections eliminate wireless retransmission entirely. TCP gets a clean, low-loss channel.</p></div>
-      <div class="fix-card"><span class="fix-icon">🌐</span><div class="fix-title">Use a CDN-backed Service</div><p class="fix-body">CDNs place servers close to you, reducing RTT. Smaller RTT = faster cwnd growth = more throughput.</p></div>
-      <div class="fix-card"><span class="fix-icon">⏰</span><div class="fix-title">Avoid Peak Hours</div><p class="fix-body">8–11 PM is when ISP backhaul congestion peaks. Schedule large downloads for off-peak hours.</p></div>
-      <div class="fix-card"><span class="fix-icon">🔁</span><div class="fix-title">Restart Your Router</div><p class="fix-body">Clears NAT tables, resets buffer queues. Often resolves bufferbloat and stale connection states.</p></div>
-      <div class="fix-card"><span class="fix-icon">🛡️</span><div class="fix-title">Use a VPN (for throttling)</div><p class="fix-body">Encrypts packets so your ISP can't inspect traffic type — defeats application-layer throttling.</p></div>
-    </div>
-
-    <div class="section-label">08 — The Bigger Picture</div>
-    <h2>The Internet Is <em>Self-Healing</em></h2>
-
-    <p>No single entity controls internet congestion. There is no global traffic manager, no central coordinator. Five billion users, sending trillions of packets per second, are regulated entirely by billions of independent TCP stacks running the same simple algorithm — probe, back off, probe again.</p>
-
-    <p>So next time the spinning wheel appears, remember: that is not the internet failing. That is TCP doing exactly what it was designed to do in 1988. Backing off. Waiting. Probing for space. <strong>The slowdown is the feature.</strong></p>
-
-  </div>
-
-  <div class="closing-wrap">
-    <div class="closing-card">
-      <h3>"The Slowdown is the Feature."</h3>
-      <p>TCP's congestion control is the reason the internet doesn't collapse under its own weight. Every backoff, every cwnd reset, every sawtooth is the network regulating itself — without a single central authority.</p>
-    </div>
-  </div>
-</div>
-
-<footer>
-  <p>© 2026 Jay · Built with HTML, CSS, JS</p>
-</footer>
 
 <script>
-  const posts = [
-    { date:"Mar 15", title:"Why Your Internet Slows Down", excerpt:"Congestion, packet loss, TCP's sawtooth — a plain-language breakdown of why your connection betrays you.", tags:["systems"], isArticle:true },
-    { date:"Mar 28", title:"Why Hashing is the Most Underrated Concept in DSA", excerpt:"Hash maps turn O(n) brute-force into O(1) magic. Here's how I finally understood why.", tags:["dsa","cpp"] },
-    { date:"Mar 22", title:"Two Sum: Three Solutions, One Lesson", excerpt:"Brute force, sorting, and hash map — what they teach you about trade-offs.", tags:["dsa","cpp"] },
-    { date:"Mar 08", title:"Pointers in C++: A Visual Guide", excerpt:"Memory addresses, dereferencing, and why pointer arithmetic is both terrifying and elegant.", tags:["cpp"] },
-    { date:"Feb 28", title:"Building an MVP in 24 Hours at a Hackathon", excerpt:"What I learned making MindSpace — a focus + journaling app — under pressure with no sleep.", tags:["web"] },
-    { date:"Feb 18", title:"STL unordered_map: Under the Hood", excerpt:"Buckets, load factors, and why your hash map can still be O(n) in the worst case.", tags:["dsa","cpp"] },
-  ];
+const experiments = [
+  {
+    id: "exp1",
+    num: "Exp 1",
+    title: "Keil µVision IDE — Introduction & Setup",
+    aim: "Introduce Keil µVision IDE and familiarise students with its use for 8051 microcontroller programming.",
+    theory: `<p>Keil µVision is an Integrated Development Environment (IDE) developed by ARM (formerly Keil Elektronik GmbH) specifically for embedded systems development. It brings together a text editor, compiler, assembler, linker, simulator, and debugger in a single interface.</p>
+<h4>Why Keil for 8051?</h4>
+<p>The 8051 is an 8-bit Harvard architecture microcontroller (program memory separate from data memory) originally by Intel. Keil provides the C51 compiler (for C programs) and A51 assembler (for assembly programs), both optimised for the 8051 instruction set. It also provides a built-in simulator that can emulate ports, timers, UARTs, and interrupts — allowing you to test code without hardware.</p>
+<h4>Build Process</h4>
+<p>When you write code and click "Build Target", Keil runs the compiler/assembler → linker → locator pipeline. The output is a .HEX file (Intel HEX format) which encodes machine code with address information. This HEX file is what you flash to the actual microcontroller using a programmer (like Flash Magic).</p>
+<h4>Key Registers you see in the IDE</h4>
+<p>During simulation, the register window shows: Accumulator (A), B register, SP (Stack Pointer), PC (Program Counter), PSW (Program Status Word — carry, auxiliary carry, zero, overflow flags), and the four register banks R0–R7. The memory window shows internal RAM (addresses 00H–FFH) in real time.</p>
+<h4>Crystal Frequency</h4>
+<p>The standard 8051 uses 12 oscillator cycles per machine cycle. With an 11.0592 MHz crystal, one machine cycle = 1.085 µs — chosen because it produces exact baud rates for serial communication (e.g. 9600 bps).</p>`,
+    summary: "Keil µVision is the standard IDE for 8051 development. It compiles C or Assembly source into a HEX file, which is flashed onto hardware. The simulator lets you verify register values and port states before touching real hardware.",
+    steps: [
+      "Open Keil µVision → Project → New µVision Project → give it a name and save.",
+      "Device selection dialog appears → expand Atmel or Generic 8051 folder → select AT89C51 (or AT89S52) → OK.",
+      "A dialog asks 'Add STARTUP.A51?' — click No for simple programs.",
+      "Right-click 'Source Group 1' in the Project window → Add New Item → select 'Asm File (.s)' or 'C File (.c)' → name it → Add.",
+      "Write your code in the editor that opens.",
+      "Go to Project → Options for Target → Output tab → tick 'Create HEX File'.",
+      "Click 'Build Target' (F7) — check the Build Output window for 0 errors.",
+      "To simulate: Debug → Start/Stop Debug Session (Ctrl+F5). Use Run (F5), Step (F11), and watch Registers + Memory windows."
+    ],
+    code: `; Simple LED blink on P2.0 (basic test program)
+ORG 0000H
+MAIN:  SETB P2.0        ; Set P2.0 HIGH (LED OFF for common anode)
+       ACALL DELAY
+       CLR  P2.0        ; Set P2.0 LOW  (LED ON for common anode)
+       ACALL DELAY
+       SJMP MAIN
 
-  function renderPosts(tag) {
-    const list = document.getElementById('postList');
-    const nr = document.getElementById('noResults');
-    const filtered = tag==='all' ? posts : posts.filter(p=>p.tags.includes(tag));
-    list.innerHTML = '';
-    if (!filtered.length) { nr.style.display='block'; return; }
-    nr.style.display = 'none';
-    filtered.forEach((post,i) => {
-      const div = document.createElement('div');
-      div.className = 'post-item';
-      div.style.animationDelay = `${i*0.05+0.05}s`;
-      div.innerHTML = `
-        <div class="post-date">${post.date}</div>
-        <div>
-          <div class="post-title">${post.title}</div>
-          <div class="post-excerpt">${post.excerpt}</div>
-          <div class="post-tags">${post.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-        </div>`;
-      if (post.isArticle) div.addEventListener('click', showArticle);
-      list.appendChild(div);
-    });
+DELAY: MOV TMOD, #01H  ; Timer0 Mode1 (16-bit)
+       MOV TH0, #3CH   ; Load high byte for 50ms
+       MOV TL0, #0B0H  ; Load low byte
+       SETB TR0         ; Start Timer0
+L1:    JNB TF0, L1      ; Wait for overflow
+       CLR TR0          ; Stop timer
+       CLR TF0          ; Clear flag
+       RET
+END`,
+    vivas: [
+      { q: "What is Keil µVision?", a: "It is an IDE by ARM for embedded development — integrates editor, C51 compiler, A51 assembler, linker, simulator and debugger for 8051 and other ARM-based microcontrollers." },
+      { q: "What is a HEX file and why is it needed?", a: "A HEX file (Intel HEX format) is the binary image of the compiled program encoded as ASCII hex records with address info. It's needed because this is the format that in-system programmers (like Flash Magic) use to write code to the 8051's flash memory." },
+      { q: "What is the difference between C51 compiler and A51 assembler?", a: "C51 compiles high-level C code to 8051 machine code. A51 assembles 8051 assembly language mnemonics directly to machine code. C is portable and readable; Assembly gives direct hardware control and smaller code." },
+      { q: "What is the function of the Program Counter (PC)?", a: "PC holds the address of the next instruction to be fetched and executed. It auto-increments after each fetch. It cannot be directly read or written in 8051 assembly except via LJMP/ACALL instructions." },
+      { q: "What does PSW stand for and what bits does it contain?", a: "Program Status Word — an 8-bit SFR containing: CY (Carry), AC (Auxiliary Carry), F0 (user flag), RS1:RS0 (Register Bank select), OV (Overflow), P (Parity)." },
+      { q: "Why is 11.0592 MHz used as crystal frequency?", a: "Because with the 8051's 12-cycles-per-machine-cycle architecture, 11.0592 MHz gives a machine cycle of 1.085 µs, which produces exact integer division for standard baud rates like 9600, 4800, 19200 bps in Timer1 Mode 2." },
+      { q: "What is the Harvard architecture?", a: "An architecture where program memory (code) and data memory are physically separate with separate buses. The 8051 uses Harvard architecture — ROM/Flash for code, internal RAM for data." }
+    ]
+  },
+  {
+    id: "exp2",
+    num: "Exp 2 / Lab 02",
+    title: "Arithmetic & Logical Operations (ALU)",
+    aim: "Write 8051 Assembly programs for ADD, SUB, MUL, DIV and AND, OR, XOR operations on 8-bit numbers stored in memory.",
+    theory: `<p>The 8051's Arithmetic and Logic Unit (ALU) performs operations using the Accumulator (A) as the primary operand register. All arithmetic results land in A (with the B register used as the second 8-bit register for MUL and DIV).</p>
+<h4>Arithmetic Instructions</h4>
+<p><strong>ADD A, src</strong> — Adds src to A. Sets CY if result > FFH. Sets AC if carry from bit 3 to bit 4. Sets OV if signed overflow.</p>
+<p><strong>SUBB A, src</strong> — Subtracts src AND borrow (CY) from A. Always subtract with borrow — clear CY first if no borrow intended.</p>
+<p><strong>MUL AB</strong> — Multiplies A × B. 16-bit result: high byte → B, low byte → A. Clears CY. Sets OV if result > FFH.</p>
+<p><strong>DIV AB</strong> — Divides A by B. Quotient → A, Remainder → B. CY=0 always. OV=1 if B=0 (divide by zero).</p>
+<h4>Logical Instructions</h4>
+<p><strong>ANL A, src</strong> — Bitwise AND. Used to clear specific bits (mask operation). Example: ANL A, #0FH clears upper nibble.</p>
+<p><strong>ORL A, src</strong> — Bitwise OR. Used to set specific bits. Example: ORL A, #80H sets MSB.</p>
+<p><strong>XRL A, src</strong> — Bitwise XOR. Used to toggle bits or compare (if A XOR B = 0, they're equal).</p>
+<h4>Memory Addressing used here</h4>
+<p>The experiment uses direct addressing (MOV A, 40H — reads internal RAM location 40H) and register indirect (via R0 as pointer). Internal RAM 00H–7FH is general-purpose; 80H–FFH is SFR space.</p>`,
+    summary: "8051 ALU operations all use the Accumulator. ADD/SUB affect CY and OV flags. MUL gives 16-bit result in B:A. DIV puts quotient in A, remainder in B. Logical ops (AND/OR/XOR) work bit-by-bit and are essential for bit manipulation.",
+    steps: [
+      "Store operand 1 (e.g. 24H) at memory address 40H and operand 2 (e.g. 09H) at address 41H using the Memory window in Keil debug mode.",
+      "Write the assembly program covering all 7 operations (ADD, SUBB, MUL, DIV, ANL, ORL, XRL).",
+      "Load each operand: MOV A, 40H (gets first operand), MOV R0, 41H (gets second into R0).",
+      "Perform operation and store result (e.g. ADD A, R0 → MOV 42H, A).",
+      "Build and simulate. Open Memory window (View → Memory Windows → Memory 1).",
+      "Check addresses 42H onward for results — verify manually with binary calculations.",
+      "For MUL: result is two bytes — check A (low byte at 47H) and B (high byte at 48H).",
+      "For DIV: check A (quotient at 49H) and B (remainder at 4AH)."
+    ],
+    code: `; Store: 40H = 24H (operand 1), 41H = 09H (operand 2) in memory
+       MOV A, 40H      ; Load operand 1 into A
+       MOV R0, 41H     ; Load operand 2 into R0
+
+; ADDITION
+       ADD A, R0
+       MOV 42H, A      ; Result: 2DH
+
+; SUBTRACTION (clear carry first)
+       CLR C
+       MOV A, 40H
+       SUBB A, R0
+       MOV 43H, A      ; Result: 1BH
+
+; AND
+       MOV A, 40H
+       ANL A, R0
+       MOV 44H, A      ; Result: 00H
+
+; OR
+       MOV A, 40H
+       ORL A, R0
+       MOV 45H, A      ; Result: 2DH
+
+; XOR
+       MOV A, 40H
+       XRL A, R0
+       MOV 46H, A      ; Result: 2DH
+
+; MULTIPLICATION
+       MOV A, 40H
+       MOV B, R0
+       MUL AB
+       MOV 47H, A      ; Low byte: 44H
+       MOV 48H, B      ; High byte: 01H
+
+; DIVISION
+       MOV A, 40H
+       MOV B, R0
+       DIV AB
+       MOV 49H, A      ; Quotient: 04H
+       MOV 4AH, B      ; Remainder: 00H
+
+STOP: SJMP STOP
+END`,
+    vivas: [
+      { q: "Why does 8051 have SUBB instead of SUB?", a: "The 8051 always subtracts with borrow (CY flag). If you want simple subtraction without borrow, you clear the CY flag first using CLR C before executing SUBB. This design simplifies multi-byte subtraction chaining." },
+      { q: "What is the result stored in for MUL AB and why two registers?", a: "MUL AB multiplies two 8-bit numbers. The result can be up to 16 bits (e.g. FFH × FFH = FE01H), so it cannot fit in one 8-bit register. Low byte goes to A, high byte goes to B." },
+      { q: "What happens if you divide by zero in DIV AB?", a: "The OV (Overflow) flag in PSW is set to 1, indicating a divide-by-zero error. The CY flag is always 0. The result in A and B is undefined." },
+      { q: "What is the difference between direct and register indirect addressing?", a: "Direct addressing uses a literal address (MOV A, 40H — fetches from RAM location 40H). Register indirect uses a register as pointer (MOV A, @R0 — fetches from the address stored in R0). Indirect allows looping through arrays." },
+      { q: "How would you use ANL to extract only the lower nibble of A?", a: "ANL A, #0FH — this ANDs with 00001111B, which zeroes the upper 4 bits and keeps the lower 4 bits unchanged. Used in BCD and hex-to-ASCII conversions." },
+      { q: "What flags does ADD affect?", a: "ADD affects CY (carry out of bit 7), AC (carry out of bit 3, used for BCD), OV (signed overflow — XOR of carry into and out of MSB), and P (parity of A)." },
+      { q: "What is the internal RAM map of the 8051?", a: "00H–1FH: four register banks (R0–R7 each). 20H–2FH: bit-addressable area (128 bits). 30H–7FH: general purpose RAM. 80H–FFH: SFR (Special Function Register) space." }
+    ]
+  },
+  {
+    id: "exp3",
+    num: "Lab 03",
+    title: "I/O Port Sampling — Store & Average",
+    aim: "Store 5 samples from an external device via Port 1 of the 8051 and compute their average.",
+    theory: `<p>The 8051 has four 8-bit parallel I/O ports: P0, P1, P2, P3. Each port has a latch (SFR) and output drivers. Writing 1s to a port latch configures the pins as inputs (quasi-bidirectional mode), reading the port pin captures the external logic level.</p>
+<h4>Port 1 as Input</h4>
+<p>Writing MOV P1, #0FFH writes all 1s to Port 1 latch, turning on internal pull-ups and making all pins high-impedance inputs. External logic can then pull pins low. When you MOV A, P1, you read the actual pin values, not the latch.</p>
+<h4>Data Collection Loop</h4>
+<p>The experiment uses a pointer (R0) starting at memory address 40H and a counter (R1 = 05H for 5 samples). The DJNZ (Decrement and Jump if Not Zero) instruction forms a tight loop: read from P1 → store via @R0 → increment pointer → decrement counter → repeat until counter = 0.</p>
+<h4>Computing the Average</h4>
+<p>After collecting samples, a second loop sums them using ADD A, @R0 starting with A=0. Then DIV AB divides the sum by the count (4H in this code, though logically should be 05H). The quotient (average) is stored at address 45H. This demonstrates both data acquisition and basic DSP-like averaging.</p>
+<h4>Why Averaging Matters</h4>
+<p>In real embedded systems (sensors, ADCs), individual readings can have noise. Averaging multiple samples gives a smoother, more accurate result — fundamental to signal processing in embedded applications.</p>`,
+    summary: "Port 1 is configured as input by writing FFH to it. Data is read sample-by-sample in a loop using DJNZ and stored using indirect addressing (@R0). A second loop sums all samples and DIV AB computes the average. This is the basis of embedded data acquisition.",
+    steps: [
+      "Configure P1 as input: MOV P1, #0FFH.",
+      "Set counter R1 = 05H (5 samples) and pointer R0 = 40H (start of storage area).",
+      "Enter sampling loop: MOV A, P1 (read sample), MOV @R0, A (store at R0 pointer), INC R0, DJNZ R1, BACK.",
+      "After loop, reinitialise: R1 = 05H, R0 = 40H, A = 00H.",
+      "Enter summation loop: ADD A, @R0, INC R0, DJNZ R1, BACK1.",
+      "Divide: MOV B, #05H → DIV AB → MOV 45H, A (store average).",
+      "In Keil simulation: use the Memory window to manually write test values at 40H–44H to simulate sensor readings.",
+      "Run the program and verify the result at address 45H matches the expected average."
+    ],
+    code: `       MOV P1, #0FFH   ; Configure P1 as input
+       MOV R1, #05H    ; Sample count = 5
+       MOV R0, #40H    ; Pointer to storage start
+
+; --- SAMPLING LOOP ---
+BACK:  MOV A, P1       ; Read sample from Port 1
+       MOV @R0, A      ; Store at current pointer address
+       INC R0          ; Move to next address
+       DJNZ R1, BACK   ; Repeat for all 5 samples
+
+; --- SUMMATION LOOP ---
+       MOV R1, #05H    ; Reset counter
+       MOV R0, #40H    ; Reset pointer
+       MOV A, #00H     ; Clear accumulator
+
+BACK1: ADD A, @R0      ; Add sample to running total
+       INC R0
+       DJNZ R1, BACK1
+
+; --- COMPUTE AVERAGE ---
+       MOV B, #05H     ; Divisor = 5
+       DIV AB
+       MOV 45H, A      ; Store average at 45H
+
+STOP:  SJMP STOP
+END`,
+    vivas: [
+      { q: "Why do we write FFH to P1 before reading from it?", a: "The 8051 ports are quasi-bidirectional. Writing 1s to the latch enables the internal weak pull-ups and makes the output driver float high-Z, allowing external signals to drive the pin. Without writing 1s, the pin may be driven low by the latch, ignoring external input." },
+      { q: "What is DJNZ and how does it work?", a: "Decrement and Jump if Not Zero. DJNZ Rn, label decrements register Rn by 1 and jumps to label if result ≠ 0. If result = 0, execution falls through. It is the standard 8051 loop instruction." },
+      { q: "What is the difference between MOV @R0, A and MOV R0, A?", a: "MOV R0, A copies A's value into R0 register. MOV @R0, A uses R0 as a pointer — it writes A's value to the internal RAM address that R0 holds. @R0 means 'at the address in R0'." },
+      { q: "Which registers can be used as indirect pointers in 8051?", a: "Only R0 and R1 (from the current register bank) can be used as 8-bit indirect pointers for internal RAM (using @R0, @R1). For external memory (XRAM), DPTR is used with MOVX instruction." },
+      { q: "What is the purpose of averaging samples?", a: "Averaging reduces noise — random errors in individual readings cancel out statistically. The more samples averaged, the lower the noise floor. This is essential in ADC-based sensor systems." },
+      { q: "What addressing mode is @R0?", a: "Register Indirect addressing. The address of the operand is the contents of R0. It allows runtime-computed addresses, enabling loops that process arrays in memory." },
+      { q: "If the sum exceeds 255 (FFH), what happens?", a: "The carry flag (CY) is set and A wraps around (modulo 256). For multi-byte numbers, you'd need to check CY after each ADD and propagate it to a higher byte. This is why multi-byte arithmetic uses ADDC (Add with Carry)." }
+    ]
+  },
+  {
+    id: "exp4",
+    num: "Lab 04",
+    title: "LED Interfacing — Blink, Switch Control & Patterns",
+    aim: "Blink an LED at 1-second intervals, control LED via switch input, and generate patterns on 8 common-anode LEDs.",
+    theory: `<p>This experiment covers GPIO output driving, delay generation using timers, and digital input reading — the three fundamental hardware I/O skills in embedded systems.</p>
+<h4>Common Anode vs Common Cathode</h4>
+<p>In a common anode LED configuration, the anode (+) of all LEDs is connected to +5V. To turn ON an LED, the microcontroller pin must output logic-0 (LOW) to sink current. To turn OFF, output logic-1 (HIGH). This is the inverse of common cathode. So CLR P2.0 = LED ON, SETB P2.0 = LED OFF for common anode.</p>
+<h4>Timer-Based Delay (50ms × 20 = 1 second)</h4>
+<p>Timer 0 in Mode 1 is a 16-bit timer. With 11.0592 MHz crystal, each machine cycle = 1.085 µs. Timer counts from loaded value to FFFFH then overflows (TF0=1). To generate 50ms delay: count needed = 50000µs ÷ 1.085µs ≈ 46082 cycles. 65536 − 46082 = 19454 = 3CB0H, so TH0 = 3CH, TL0 = B0H. Repeating 20 times (R0=14H=20) gives 1 second.</p>
+<h4>Switch Debouncing (conceptual)</h4>
+<p>Mechanical switches bounce — briefly make and break contact multiple times when pressed. In this experiment, the code uses JB (Jump if Bit set) and JNB (Jump if Bit Not set) on P3.7 to wait for stable high or low state. A proper design adds a hardware capacitor or software delay loop after detecting a transition.</p>
+<h4>Bit Rotation for Patterns</h4>
+<p>The RL A (Rotate Left through carry) instruction shifts all 8 bits left, with bit 7 going to bit 0. This creates a moving '1' across the 8 LEDs — a "knight rider" effect. XRL and MOV with immediate values create arbitrary patterns.</p>`,
+    summary: "Common anode LEDs: LOW = ON, HIGH = OFF. 1-second delay = 20× 50ms timer overflows (TH0=3CH, TL0=B0H). Switch on P3.7: JB waits for pressed (low), JNB waits for released. RL A rotates accumulator left to shift LED patterns.",
+    steps: [
+      "Connect LED anode to +5V, cathode through 220Ω resistor to P2.0. Set P2.0 as output.",
+      "Part A (Blink): Use SETB P2.0 (OFF) → ACALL DELAY → CLR P2.0 (ON) → ACALL DELAY → SJMP MAIN.",
+      "Delay subroutine: MOV TMOD, #01H → MOV R0, #14H (20 repeats) → load TH0=3CH, TL0=B0H → SETB TR0 → poll TF0 → CLR TR0 → CLR TF0 → DJNZ R0, L2 → RET.",
+      "Part B (Switch control): SETB P3.7 (configure as input). Use JB P3.7, L1 to wait for switch press (P3.7=0). CLR P2.0 → wait for release with JNB P3.7, L2 → SETB P2.0.",
+      "Part C (Patterns): Load pattern into A (e.g. #25H), MOV P2, A, call delay, RL A to rotate, repeat with SJMP MAIN.",
+      "Simulate in Keil: in debug mode, toggle port pin P3.7 manually in the port window to simulate switch press.",
+      "Verify LED state changes in the peripherals/port window during simulation."
+    ],
+    code: `; ============ PART A: LED BLINK ============
+MAIN:  SETB P2.0        ; LED OFF (common anode)
+       ACALL DELAY
+       CLR  P2.0        ; LED ON
+       ACALL DELAY
+       SJMP MAIN
+
+DELAY: MOV TMOD, #01H   ; Timer0 Mode1
+       MOV R0, #14H     ; 20 repetitions = 1 sec
+L2:    MOV TL0, #0B0H   ; 50ms count low byte
+       MOV TH0, #3CH    ; 50ms count high byte
+       SETB TR0          ; Start timer
+L1:    JNB TF0, L1       ; Wait for overflow
+       CLR TR0           ; Stop
+       CLR TF0           ; Clear flag
+       DJNZ R0, L2
+       RET
+
+; ============ PART B: SWITCH CONTROL ============
+;      SETB P3.7          ; P3.7 as input (switch)
+;L3:   SETB P2.0          ; LED OFF initially
+;L1:   JB P3.7, L1        ; Wait until switch pressed (P3.7=0)
+;      CLR P2.0           ; LED ON
+;L2:   JNB P3.7, L2       ; Wait until released
+;      SJMP L3
+
+; ============ PART C: LED PATTERNS ============
+;MAIN: MOV A, #25H       ; Initial pattern 00100101B
+;      MOV P2, A
+;      ACALL DELAY
+;      RL A               ; Rotate left
+;      SJMP MAIN
+END`,
+    vivas: [
+      { q: "Why is P3.7 set to 1 before reading the switch?", a: "For the same quasi-bidirectional port reason as Port 1. Writing 1 to P3.7 enables the pull-up and makes it an input. Without this, the latch drives the pin low and the switch cannot override it." },
+      { q: "What is the TMOD register and how is it configured for Timer0 Mode1?", a: "TMOD (Timer Mode register, address 89H) is not bit-addressable. The lower nibble (bits 3:0) configures Timer0, upper nibble for Timer1. MOV TMOD, #01H sets Timer0 to Mode1 (16-bit, no auto-reload) and leaves Timer1 unchanged." },
+      { q: "What are TF0 and TR0?", a: "TR0 (Timer Run bit, TCON.4): set to 1 to start Timer0, clear to stop. TF0 (Timer Flag, TCON.5): automatically set to 1 by hardware when Timer0 overflows from FFFFH to 0000H. You must clear it in software after servicing." },
+      { q: "What does RL A do?", a: "Rotate Left — shifts all 8 bits of A one position left. Bit 7 goes to bit 0 (rotates into itself, not CY). Used to create moving patterns on LEDs." },
+      { q: "What is the difference between RL A and RLC A?", a: "RL A rotates without carry — bit 7 goes directly to bit 0. RLC A rotates through carry — bit 7 goes to CY, and old CY goes to bit 0. RLC is used for multi-byte shift operations." },
+      { q: "How is the 1-second delay calculated?", a: "With 11.0592 MHz crystal: machine cycle = 12/11.0592M ≈ 1.085µs. For 50ms: 50000µs ÷ 1.085µs ≈ 46082 counts. Timer preload = 65536−46082 = 19454 = 4C32H... but common approximation uses 3CB0H (≈50ms). 20 × 50ms = 1 second (R0=#14H = 20d)." },
+      { q: "What is JNB vs JB instruction?", a: "JB bit, label — Jump if Bit is 1 (set). JNB bit, label — Jump if Bit is 0 (not set). Both are single-bit test-and-branch instructions. P3.7 is a directly bit-addressable SFR bit." }
+    ]
+  },
+  {
+    id: "exp5",
+    num: "Lab 05",
+    title: "7-Segment Display Interfacing",
+    aim: "Interface a 7-segment display with 8051 to count up 0-9, count down 9-0, and toggle direction via switch. Also count 00-99 with two displays.",
+    theory: `<p>A 7-segment display (SSD) has 7 LED segments labelled a–g and a decimal point. By turning specific segments on or off, digits 0–9 and some letters can be displayed. The segment encoding is stored in a lookup table (LUT).</p>
+<h4>Common Cathode vs Common Anode Codes</h4>
+<p>Common Cathode (CC): all cathodes tied to GND. Logic 1 turns a segment ON. Segment code for '0' = 00111111B = 3FH (segments a,b,c,d,e,f on).<br>
+Common Anode (CA): all anodes tied to +5V. Logic 0 turns a segment ON. CA code = bitwise NOT of CC code. For '0': CA = C0H.</p>
+<h4>Lookup Table (LUT) with MOVC</h4>
+<p>The segment codes are stored in program memory as DB (Define Byte) directives after a label. MOVC A, @A+DPTR loads a byte from code memory at address DPTR+A. This is ideal for tables — set DPTR to table base address and use index in A to fetch the right code. The instruction MOVC cannot access data memory (RAM), only code memory (ROM/Flash).</p>
+<h4>CC Lookup Table</h4>
+<p>SEG_TAB: DB 3FH,06H,5BH,4FH,66H,6DH,7DH,07H,7FH,6FH maps digits 0–9.</p>
+<h4>CJNE — Compare and Jump</h4>
+<p>CJNE R0, #0AH, MAIN compares R0 with 10 (0AH). If they're not equal, it jumps to MAIN. When R0 reaches 10 (after counting 0–9), CJNE falls through and R0 is reset to 0. This is how the 0–9 loop is managed without IF statements.</p>`,
+    summary: "7-segment codes are stored in a ROM lookup table and fetched using MOVC A, @A+DPTR. CJNE creates the 0-9 counter loop. Switch on P3.3 changes counting direction. Two SSDs can be multiplexed or driven simultaneously through one port (split nibbles).",
+    steps: [
+      "Connect SSD segments a-g to P1.0–P1.6. For common cathode: GND to common pin. For common anode: +5V to common pin.",
+      "Part A (0-9 up count): Initialise DPTR with address of SEG_TAB. Set R0=00H as index.",
+      "Main loop: MOVC A, @A+DPTR (A=R0 here) → MOV P1, A → ACALL DELAY → INC R0 → CJNE R0, #0AH, MAIN → reset R0=0 → SJMP MAIN.",
+      "Part B (0-9 up + 9-0 down): Extended table with 19 entries (0,1..9,8..1,0) and CJNE check against #13H (19).",
+      "Part C (Switch direction): Use JB P3.3, DOWN_COUNT to decide direction. In UP: INC R0, CJNE R0,#0AH. In DOWN: DEC R0, CJNE R0,#0FFH (wrap below 0).",
+      "Delay subroutine: same Timer0 Mode1 approach — 20 × 50ms = 1 second.",
+      "Verify in Keil by watching P1 output values and checking them against the segment table."
+    ],
+    code: `; ====== PART A: COUNT UP 0-9 ======
+       ORG 0000H
+START: MOV DPTR, #SEG_TAB  ; Base address of table
+       MOV R0, #00H         ; Start index
+
+MAIN:  MOV A, R0
+       MOVC A, @A+DPTR      ; Fetch segment code
+       MOV P1, A            ; Output to display
+       ACALL DELAY
+       INC R0
+       CJNE R0, #0AH, MAIN  ; Loop until R0=10
+       MOV R0, #00H         ; Reset index
+       SJMP MAIN
+
+DELAY: MOV TMOD, #01H
+       MOV R1, #14H
+L2:    MOV TL0, #0B0H
+       MOV TH0, #3CH
+       SETB TR0
+L1:    JNB TF0, L1
+       CLR TR0
+       CLR TF0
+       DJNZ R1, L2
+       RET
+
+; Common Cathode segment codes 0-9
+SEG_TAB: DB 3FH,06H,5BH,4FH,66H,6DH,7DH,07H,7FH,6FH
+
+; ====== PART C: SWITCH-CONTROLLED DIRECTION ======
+; JB P3.3, DOWN_COUNT   ; if P3.3=1, count down
+; UP_COUNT:  INC R0 → CJNE R0,#0AH,MAIN → reset to 0
+; DOWN_COUNT: DEC R0 → CJNE R0,#0FFH,MAIN → reset to 09H
+END`,
+    vivas: [
+      { q: "What is MOVC and how is it different from MOV?", a: "MOVC (Move Code) reads from program memory (code/flash). MOV reads from or writes to data memory (internal/external RAM) or SFRs. MOVC A, @A+DPTR is the standard way to look up values in a constant table stored in ROM." },
+      { q: "What is the segment code for digit 7 in common cathode?", a: "07H = 00000111B — only segments a, b, c are on (top bar, upper right, lower right), which draws a '7'." },
+      { q: "What is CJNE and what flags does it affect?", a: "Compare and Jump if Not Equal. CJNE A/Rn/indirect, #data/direct, label. Sets CY if the first operand is less than the second (useful for less-than comparisons). Does NOT affect zero or OV flags. Execution jumps to label if operands are unequal." },
+      { q: "Why does DEC R0 result in 0FFH when R0=0?", a: "R0 is 8-bit. Decrementing 0 causes unsigned wrap-around: 0 − 1 = 255 = FFH in 8-bit. CJNE R0, #0FFH, MAIN detects this wrap and resets R0 to 09H, effectively clamping the down-counter." },
+      { q: "How would you display on a common anode display?", a: "Invert all segment codes. If CC code for '0' is 3FH = 00111111B, then CA code = 11000000B = C0H. You can either store CA codes in the table, or use CPL A (complement accumulator) after fetching the CC code." },
+      { q: "What is multiplexing in multi-digit displays?", a: "Rapidly switching between digits — displaying one digit at a time but switching fast enough (>50Hz) that persistence of vision makes all digits appear on simultaneously. Reduces I/O pins needed from 7×N to 7+N pins." },
+      { q: "What is DPTR and how big is it?", a: "Data Pointer — a 16-bit register made of DPH (high byte) and DPL (low byte). Used for accessing external memory (MOVX) and code memory (MOVC). It can address up to 64KB (0000H–FFFFH)." }
+    ]
+  },
+  {
+    id: "exp6",
+    num: "Lab 06",
+    title: "16×2 LCD Interfacing",
+    aim: "Interface a 16×2 LCD with the 8051 and display 'VIT' on line 1.",
+    theory: `<p>The 16×2 LCD (based on HD44780 controller) has 16 characters per row, 2 rows. It communicates in parallel — either 8-bit mode (uses D0–D7 + 3 control pins) or 4-bit mode (uses D4–D7 only).</p>
+<h4>Control Pins</h4>
+<p><strong>RS (Register Select)</strong>: RS=0 → Command Register (send LCD commands). RS=1 → Data Register (send character ASCII).</p>
+<p><strong>R/W (Read/Write)</strong>: R/W=0 → Write to LCD. R/W=1 → Read from LCD. Almost always R/W=0 in practice.</p>
+<p><strong>E (Enable)</strong>: Data is latched on the falling edge of E (HIGH→LOW transition). Must pulse E high then low for each byte sent.</p>
+<h4>Initialization Sequence (8-bit mode)</h4>
+<p>1. Send 38H — Function Set: 2 lines, 5×7 dot matrix, 8-bit interface.<br>
+2. Send 0EH — Display ON, cursor ON (0CH=cursor off, 0FH=blinking cursor).<br>
+3. Send 01H — Clear Display (takes ~1.52ms, longest command).<br>
+4. Send 06H — Entry Mode: increment cursor, no display shift.</p>
+<h4>Sending Characters</h4>
+<p>To display 'V' (ASCII 56H): set RS=1 (data mode), R/W=0, load 56H to data port, pulse E. The DDRAM (Display Data RAM) of the LCD stores characters. Line 1 starts at address 00H (set with command 80H), line 2 at 40H (command C0H).</p>
+<h4>Why a Delay After Each Command?</h4>
+<p>The HD44780 needs time to execute commands (1.52ms for clear, 37µs for most others). Without delay, the next command overwrites before execution completes, causing garbled display.</p>`,
+    summary: "LCD has 3 control pins: RS (command/data), RW (read/write), E (enable pulse). Commands sent with RS=0, data (characters) with RS=1. Initialization: 38H, 0EH, 01H, 06H. Each byte sent by pulsing E high→low. ASCII value of character is sent to display it.",
+    steps: [
+      "Connect LCD D0–D7 to P3, RS→P2.5, R/W→P2.6, E→P2.7. VEE to potentiometer for contrast.",
+      "In code, set SP = 60H (stack above SFR area).",
+      "Initialize LCD: send commands 38H (2-line), 0EH (display on), 01H (clear), 06H (increment) using the COMMAND subroutine.",
+      "COMMAND subroutine: MOV P3, A (data on port) → CLR P2.5 (RS=0) → CLR P2.6 (RW=0) → SETB P2.7 (E=1) → CLR P2.7 (falling edge latches data) → ACALL DELAY.",
+      "Send character 'V': MOV A, #'V' → ACALL DISPLAY. Repeat for 'I' and 'T'.",
+      "DISPLAY subroutine: same as COMMAND but SETB P2.5 (RS=1 for data).",
+      "Delay subroutine uses Timer0 Mode1 for 5ms minimum LCD settling time.",
+      "Simulate in Proteus (or verify on hardware) — LCD should show 'VIT' on line 1."
+    ],
+    code: `       ORG 0000H
+       ORG 0040H
+       SJMP MAIN
+
+MAIN:  MOV SP, #60H        ; Set stack pointer
+
+; --- LCD INITIALIZATION ---
+       MOV A, #38H          ; 8-bit, 2-line, 5x7
+       ACALL COMMAND
+       MOV A, #0EH          ; Display ON, Cursor ON
+       ACALL COMMAND
+       MOV A, #01H          ; Clear display
+       ACALL COMMAND
+       MOV A, #06H          ; Entry mode: increment
+       ACALL COMMAND
+
+; --- DISPLAY 'VIT' ---
+       MOV A, #'V'
+       ACALL DISPLAY
+       MOV A, #'I'
+       ACALL DISPLAY
+       MOV A, #'T'
+       ACALL DISPLAY
+
+HERE:  SJMP HERE            ; Infinite loop
+
+; --- COMMAND SUBROUTINE (RS=0) ---
+COMMAND: MOV P3, A
+       CLR P2.5             ; RS=0 (command)
+       CLR P2.6             ; RW=0 (write)
+       SETB P2.7            ; E=1
+       CLR P2.7             ; E=0 (falling edge latches)
+       ACALL DELAY
+       RET
+
+; --- DATA SUBROUTINE (RS=1) ---
+DISPLAY: MOV P3, A
+       SETB P2.5            ; RS=1 (data)
+       CLR P2.6             ; RW=0
+       SETB P2.7            ; E=1
+       CLR P2.7             ; E=0
+       ACALL DELAY
+       RET
+
+; --- DELAY (5ms using Timer0) ---
+DELAY: MOV TMOD, #01H
+       MOV TL0, #78H
+       MOV TH0, #0ECH
+       SETB TR0
+WAIT:  JNB TF0, WAIT
+       CLR TR0
+       CLR TF0
+       RET
+END`,
+    vivas: [
+      { q: "What is the function of the RS pin on LCD?", a: "RS = Register Select. RS=0 selects the command register (LCD interprets the byte as a control command like clear, set cursor). RS=1 selects the data register (LCD interprets the byte as an ASCII character to display)." },
+      { q: "Why is a falling edge needed on the Enable pin?", a: "The HD44780 LCD controller is edge-triggered on Enable. It samples the data and RS/RW lines on the HIGH-to-LOW (falling) transition of E. You must first set E high, then clear it — this pulse causes the LCD to latch the data." },
+      { q: "What does command 38H mean?", a: "38H = 00111000B. In HD44780 command format: DL=1 (8-bit interface), N=1 (2 lines), F=0 (5×7 font). It initialises the LCD for 8-bit, 2-line, 5×7 dot matrix mode." },
+      { q: "How do you position the cursor to line 2?", a: "Send command C0H (10000000B | 40H). The upper bit (1) is the 'Set DDRAM Address' command flag, and 40H is the DDRAM start address of line 2. For line 1: send 80H (= 10000000B | 00H)." },
+      { q: "What is DDRAM in the LCD?", a: "Display Data RAM — 80 bytes of RAM inside the HD44780 that stores the ASCII codes of characters being displayed. Line 1 maps to addresses 00H–27H, Line 2 to 40H–67H. Writing an ASCII code to the current cursor DDRAM address displays that character." },
+      { q: "Why is command 01H (Clear Display) given extra delay?", a: "The Clear Display command writes spaces to all 80 DDRAM locations and resets the cursor to home (address 0). This takes approximately 1.52ms — much longer than other commands (37µs). Without adequate delay, the next command fails." },
+      { q: "What is the difference between 4-bit and 8-bit LCD mode?", a: "8-bit mode sends a full byte at once via D0–D7, requiring 11 I/O pins total (8 data + RS + RW + E). 4-bit mode sends each byte as two 4-bit nibbles via D4–D7, requiring only 7 pins — saving I/O at the cost of slightly more complex code." }
+    ]
+  },
+  {
+    id: "exp7",
+    num: "Exp 7",
+    title: "UART Serial Communication — 8051 to 8051 with LCD",
+    aim: "Transmit a string 'VIT' from one 8051 to another at 9600 baud; receive and display on a 16×2 LCD.",
+    theory: `<p>UART (Universal Asynchronous Receiver/Transmitter) allows serial communication — data sent one bit at a time on a single wire. The 8051's built-in UART uses the TXD (P3.1) and RXD (P3.0) pins.</p>
+<h4>Baud Rate Generation with Timer1 Mode2</h4>
+<p>Timer1 in Mode 2 (8-bit auto-reload) is the standard way to generate baud rate. The timer auto-reloads TH1 into TL1 on overflow, giving a precise, continuous clock for the UART. For 9600 baud with 11.0592 MHz crystal: TH1 = 0FDH = 253. Timer1 overflows every 3 machine cycles → 11.0592M ÷ 12 ÷ (256−253) = 307,200 Hz ÷ 32 = 9600 baud.</p>
+<h4>SCON Register (Serial Control)</h4>
+<p>MOV SCON, #50H = 01010000B:<br>
+SM0=0, SM1=1 → Mode 1 (8-bit UART, variable baud)<br>
+SM2=0 → multiprocessor mode off<br>
+REN=1 → Receiver Enabled<br>
+TB8, RB8, TI, RI = 0</p>
+<h4>Transmitting</h4>
+<p>Load SBUF with the byte to send. Hardware automatically generates start bit, 8 data bits, stop bit. TI (Transmit Interrupt flag) is set when transmission completes. You must poll JNB TI, WAIT and then CLR TI before sending next byte.</p>
+<h4>Receiving</h4>
+<p>RI (Receive Interrupt flag) is set by hardware when a complete byte is received in SBUF. Poll JNB RI, REPEAT. Read SBUF → CLR RI. The same SBUF address is used for both TX and RX (separate hardware registers).</p>`,
+    summary: "UART on 8051 uses Timer1 Mode2 as baud rate generator (TH1=FDH for 9600). SCON=50H enables Mode1 UART with receiver. TX: write to SBUF, poll TI, clear TI. RX: poll RI, read SBUF, clear RI. Two 8051s connect TXD(P3.1) → RXD(P3.0) with common ground.",
+    steps: [
+      "Hardware: Connect Transmitter P3.1 (TXD) to Receiver P3.0 (RXD). Common GND. LCD data port to Receiver P2, RS→P3.2, RW→P3.3, EN→P3.4.",
+      "Transmitter code: MOV TMOD, #20H (Timer1 Mode2) → MOV TH1, #0FDH → MOV SCON, #50H → SETB TR1.",
+      "Load string pointer: MOV DPTR, #STRING. Loop: MOVC A, @A+DPTR → JZ STOP (null terminator check) → MOV SBUF, A → poll JNB TI, WAIT → CLR TI → INC DPTR → repeat.",
+      "Receiver code: Same UART init (TMOD, TH1, SCON, TR1). Then ACALL LCD_INIT.",
+      "Receive loop: JNB RI, REPEAT (wait for data) → MOV A, SBUF → ACALL LCD_DATA → CLR RI → SJMP REPEAT.",
+      "LCD subroutines on receiver: LCD_INIT sends 38H, 0EH, 01H, 06H. LCD_CMD sets RS=0, LCD_DATA sets RS=1, both pulse EN.",
+      "Power both boards, flash respective HEX files. Receiver LCD should display 'VIT' as transmitter sends it."
+    ],
+    code: `; ======= TRANSMITTER CODE =======
+       MOV TMOD, #20H     ; Timer1 Mode2 (auto-reload)
+       MOV TH1, #0FDH     ; 9600 baud @ 11.0592MHz
+       MOV SCON, #50H     ; Mode1, REN=1
+       SETB TR1            ; Start Timer1
+
+       MOV DPTR, #STRING
+NEXT:  CLR A
+       MOVC A, @A+DPTR    ; Get char from table
+       JZ STOP             ; Null terminator = done
+       MOV SBUF, A         ; Send character
+WAIT:  JNB TI, WAIT        ; Wait for TX complete
+       CLR TI              ; Clear TX flag
+       INC DPTR
+       SJMP NEXT
+STOP:  SJMP STOP
+
+STRING: DB 'VIT', 00H     ; Null-terminated string
+END
+
+; ======= RECEIVER CODE =======
+;      MOV TMOD, #20H
+;      MOV TH1, #0FDH
+;      MOV SCON, #50H
+;      SETB TR1
+;      ACALL LCD_INIT
+;      MOV A, #80H         ; Cursor line1
+;      ACALL LCD_CMD
+;REPEAT: JNB RI, REPEAT    ; Wait for byte
+;      MOV A, SBUF
+;      ACALL LCD_DATA       ; Display on LCD
+;      CLR RI
+;      SJMP REPEAT
+; (LCD subroutines same as Exp 6 with P2=data, P3.2=RS, P3.3=RW, P3.4=EN)`,
+    vivas: [
+      { q: "What does SCON = 50H configure?", a: "50H = 01010000B. Bits: SM0=0, SM1=1 → UART Mode 1 (8-bit, variable baud). SM2=0, REN=1 (receiver enabled). TI=RI=0. This is the standard full-duplex UART configuration." },
+      { q: "Why is Timer1 used in Mode 2 for baud rate?", a: "Mode 2 is 8-bit auto-reload. TH1 holds the reload value and is automatically copied to TL1 on each overflow. This gives a continuous, fixed-frequency clock without software intervention — essential for generating a stable baud rate." },
+      { q: "Calculate: how is TH1 = FDH derived for 9600 baud?", a: "Formula: TH1 = 256 − (Crystal ÷ (12 × 32 × BaudRate)) = 256 − (11059200 ÷ (12 × 32 × 9600)) = 256 − (11059200 ÷ 3686400) = 256 − 3 = 253 = FDH." },
+      { q: "What is TI and when is it set?", a: "TI (Transmit Interrupt flag, SCON.1). Set automatically by hardware when the last bit of the stop bit is transmitted — indicating SBUF is free for the next byte. Must be cleared by software (CLR TI) before sending the next byte." },
+      { q: "What is RI and when is it set?", a: "RI (Receive Interrupt flag, SCON.0). Set by hardware when a complete byte (including stop bit) is received and stored in SBUF. Signals the CPU that new data is ready. Must be cleared by software after reading SBUF." },
+      { q: "What are the four UART modes of the 8051?", a: "Mode 0: Shift register (fixed baud = fosc/12). Mode 1: 8-bit UART variable baud (most common). Mode 2: 9-bit UART fixed baud (fosc/64 or /32). Mode 3: 9-bit UART variable baud. Mode 1 is the standard for RS-232-style communication." },
+      { q: "What connection is needed between two 8051 boards for serial communication?", a: "TXD (P3.1) of transmitter → RXD (P3.0) of receiver. Common GND between both boards. Both must use the same baud rate, same UART mode, and same crystal (or carefully matched crystals). No handshaking lines needed for this basic setup." },
+      { q: "Why is JZ STOP used in the transmitter loop?", a: "The string 'VIT' is stored with a null terminator (00H) at the end. After fetching each character with MOVC, JZ checks if A=0 (null byte). If so, transmission is complete. Without this, the transmitter would send garbage bytes beyond the string." }
+    ]
   }
+];
 
-  document.getElementById('filterBar').addEventListener('click', e => {
-    if (!e.target.matches('.filter-btn')) return;
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    e.target.classList.add('active');
-    renderPosts(e.target.dataset.tag);
+function renderNav() {
+  const nav = document.getElementById('expNav');
+  experiments.forEach((exp, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = exp.num;
+    btn.onclick = () => {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.exp-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + i).classList.add('active');
+    };
+    nav.appendChild(btn);
   });
+}
 
-  function showArticle() {
-    document.getElementById('indexPage').style.display = 'none';
-    const ap = document.getElementById('articlePage');
-    ap.style.display = 'block';
-    window.scrollTo(0,0);
-    buildChart();
-  }
+function renderPanels() {
+  const container = document.getElementById('expContent');
+  experiments.forEach((exp, i) => {
+    const panel = document.createElement('div');
+    panel.className = 'exp-panel' + (i === 0 ? ' active' : '');
+    panel.id = 'panel-' + i;
 
-  function showIndex() {
-    document.getElementById('articlePage').style.display = 'none';
-    document.getElementById('indexPage').style.display = 'block';
-    window.scrollTo(0,0);
-  }
-
-  function buildChart() {
-    const c = document.getElementById('bars');
-    if (c.children.length) return;
-    const p = [
-      {h:10,t:'ss'},{h:20,t:'ss'},{h:40,t:'ss'},{h:70,t:'ss'},{h:90,t:'ss'},
-      {h:95,t:'ca'},{h:100,t:'ca'},{h:100,t:'ca'},{h:98,t:'ca'},
-      {h:15,t:'loss'},
-      {h:20,t:'ss'},{h:40,t:'ss'},{h:75,t:'ss'},
-      {h:80,t:'ca'},{h:85,t:'ca'},{h:90,t:'ca'},{h:92,t:'ca'},{h:94,t:'ca'},
-      {h:10,t:'loss'},
-      {h:15,t:'ss'},{h:30,t:'ss'},{h:55,t:'ss'},
-      {h:60,t:'ca'},{h:65,t:'ca'},{h:70,t:'ca'},{h:72,t:'ca'}
-    ];
-    p.forEach((b,i) => {
-      const d = document.createElement('div');
-      d.className = 'tcp-bar '+b.t;
-      d.style.height = b.h+'%';
-      d.style.animationDelay = (i*0.04)+'s';
-      c.appendChild(d);
-    });
-  }
-
-  window.addEventListener('scroll', () => {
-    const h = document.documentElement;
-    const pct = (h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
-    document.getElementById('progress').style.width = Math.min(pct,100)+'%';
+    panel.innerHTML = `
+      <div class="exp-header">
+        <div class="exp-title">${exp.title} <span class="badge badge-exp">${exp.num}</span></div>
+        <div class="exp-aim">${exp.aim}</div>
+      </div>
+      <div class="section-tabs">
+        <button class="tab-btn active" onclick="showTab(this,'theory-${i}','panel-${i}')">Theory</button>
+        <button class="tab-btn" onclick="showTab(this,'summary-${i}','panel-${i}')">Summary</button>
+        <button class="tab-btn" onclick="showTab(this,'steps-${i}','panel-${i}')">Steps</button>
+        <button class="tab-btn" onclick="showTab(this,'code-${i}','panel-${i}')">Code</button>
+        <button class="tab-btn" onclick="showTab(this,'viva-${i}','panel-${i}')">Viva Q&amp;A</button>
+      </div>
+      <div class="tab-content active" id="theory-${i}">
+        <div class="theory-block">${exp.theory}</div>
+      </div>
+      <div class="tab-content" id="summary-${i}">
+        <div class="summary-box">${exp.summary}</div>
+      </div>
+      <div class="tab-content" id="steps-${i}">
+        <ol class="step-list">${exp.steps.map(s => `<li><span class="step-num"></span><span>${s}</span></li>`).join('')}</ol>
+      </div>
+      <div class="tab-content" id="code-${i}">
+        <div class="code-block">${exp.code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+      <div class="tab-content" id="viva-${i}">
+        <ul class="viva-list">${exp.vivas.map((v,j) => `
+          <li class="viva-q">
+            <span class="viva-icon">Q</span>
+            <div class="viva-q-wrap">
+              <div class="viva-q-text" onclick="toggleAns('ans-${i}-${j}')">${v.q}</div>
+              <div class="viva-ans" id="ans-${i}-${j}">${v.a}</div>
+            </div>
+          </li>`).join('')}
+        </ul>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:12px;">Tap any question to reveal the answer.</div>
+      </div>
+    `;
+    container.appendChild(panel);
+    panel.querySelectorAll('.step-num').forEach((el,idx) => { el.textContent = idx+1; });
   });
+}
 
-  renderPosts('all');
+function showTab(btn, tabId, panelId) {
+  const panel = document.getElementById(panelId);
+  panel.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  panel.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function toggleAns(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+renderNav();
+renderPanels();
 </script>
-</body>
-</html>
